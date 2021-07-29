@@ -992,12 +992,12 @@ impl From<usize> for Object {
 
 impl From<u128> for Object {
     fn from(i: u128) -> Self {
-        // if i <= (i64::MAX as u128) {
-        //     Object::Primitive(Primitives::Long(i as i64))
-        // } else {
+        if i <= (i64::MAX as u128) {
+            Object::Primitive(Primitives::Long(i as i64))
+        } else {
             let b = i.to_le_bytes().to_vec().into_boxed_slice();
             Object::Blob(b)
-      //  }
+       }
     }
 }
 
