@@ -52,7 +52,6 @@ pub use generated::gremlin::GremlinStep as GremlinStepPb;
 pub use graph_proxy::{create_demo_graph, ID_MASK};
 pub use graph_store::utils::IterList;
 use std::io;
-use crate::process::traversal::path::ResultPath;
 
 #[cfg(feature = "proto_inplace")]
 mod generated {
@@ -163,6 +162,5 @@ pub fn register_gremlin_types() -> io::Result<()> {
     dyn_type::register_type::<ShadeSync<(Traverser, Traverser)>>()?;
     dyn_type::register_type::<ShadeSync<Count<Traverser>>>()?;
     dyn_type::register_type::<ShadeSync<ToList<Traverser>>>()?;
-    dyn_type::register_type::<ShadeSync<ResultPath>>()?;
     Ok(())
 }
