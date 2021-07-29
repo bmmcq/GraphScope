@@ -733,18 +733,6 @@ impl<'a> BorrowObject<'a> {
         match self {
             BorrowObject::Primitive(p) => p.as_u128(),
             BorrowObject::DynRef(x) => try_downcast!(x, u128),
-            BorrowObject::Blob(b) => {
-                if b.len()>=std::mem::size_of::<u128>() {
-                    let (int_bytes, _) = b.split_at(std::mem::size_of::<u128>());
-                    if let Ok(bytes) = int_bytes.try_into() {
-                        Ok(u128::from_le_bytes(bytes))
-                    } else {
-                        Err(CastError::new::<u128>(self.raw_type()))
-                    }
-                } else {
-                    Err(CastError::new::<u128>(self.raw_type()))
-                }
-            },
             _ => Err(CastError::new::<u128>(self.raw_type())),
         }
     }
@@ -980,12 +968,12 @@ impl From<usize> for Object {
 
 impl From<u128> for Object {
     fn from(i: u128) -> Self {
-        // if i <= (i64::MAX as u128) {
-        //     Object::Primitive(Primitives::Long(i as i64))
-        // } else {
+        if i <= (i64::MAX as u128) {
+            Object::Primitive(Primitives::Long(i as i64))
+        } else {
             let b = i.to_le_bytes().to_vec().into_boxed_slice();
             Object::Blob(b)
-      //  }
+        }
     }
 }
 
