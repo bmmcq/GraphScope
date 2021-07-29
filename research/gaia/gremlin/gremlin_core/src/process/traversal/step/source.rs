@@ -170,7 +170,13 @@ pub fn graph_step_from(
                 step.set_tags(gremlin_step.get_tags());
                 let mut ids = vec![];
                 for id in opt.ids {
-                    let id = ID::from_str(&id).unwrap();
+                    let id = if let Ok(id) = ID::from_str(&id) {
+                        id
+                    } else {
+                        // TODO(bingqing): this is for tmp, to support when id is negative
+                        let id = i64::from_str(&id).unwrap();
+                        id as ID
+                    };
                     ids.push(id);
                 }
                 if return_type == EntityType::Vertex {
