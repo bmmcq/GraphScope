@@ -18,7 +18,7 @@ use core::any::TypeId;
 use std::any::Any;
 use std::borrow::Cow;
 use std::cmp::Ordering;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
@@ -560,18 +560,6 @@ impl Object {
         match self {
             Object::Primitive(p) => p.as_u128(),
             Object::DynOwned(x) => try_downcast!(x, u128),
-            Object::Blob(b) => {
-                if b.len()>=std::mem::size_of::<u128>() {
-                    let (int_bytes, _) = b.split_at(std::mem::size_of::<u128>());
-                    if let Ok(bytes) = int_bytes.try_into() {
-                        Ok(u128::from_le_bytes(bytes))
-                    } else {
-                        Err(CastError::new::<u128>(self.raw_type()))
-                    }
-                } else {
-                    Err(CastError::new::<u128>(self.raw_type()))
-                }
-            },
             _ => Err(CastError::new::<u128>(self.raw_type())),
         }
     }
