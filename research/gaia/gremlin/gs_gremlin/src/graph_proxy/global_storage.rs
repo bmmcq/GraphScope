@@ -205,6 +205,10 @@ where
 
         let stmt = from_fn(move |v: ID| {
             let src_id = get_partition_vertex_ids(v, partition_manager.clone());
+            info!(
+                "[gaia_adapter] in prepare_explore_vertex, query partition_vertex_ids {:?}",
+                src_id
+            );
             let iter = match direction {
                 Direction::Out => store.get_out_vertex_ids(
                     si,
