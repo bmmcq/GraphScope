@@ -205,10 +205,28 @@ where
 
         let stmt = from_fn(move |v: ID| {
             let src_id = get_partition_vertex_ids(v, partition_manager.clone());
-            info!(
-                "[gaia_adapter] in prepare_explore_vertex, query partition_vertex_ids {:?}",
-                src_id
+
+            let test_out_iter = store.get_out_vertex_ids(
+                si,
+                src_id.clone(),
+                edge_label_ids.as_ref(),
+                None,
+                None,
+                limit.unwrap_or(0),
             );
+            let test_in_iter = store.get_in_vertex_ids(
+                si,
+                src_id.clone(),
+                edge_label_ids.as_ref(),
+                None,
+                None,
+                limit.unwrap_or(0),
+            );
+            info!(
+                "[gaia_adapter] in prepare_explore_vertex, query partition_vertex_ids {:?}, out neighbors count {:?}, in neighbors count {:?}",
+                src_id, test_out_iter.count(), test_in_iter.count()
+            );
+
             let iter = match direction {
                 Direction::Out => store.get_out_vertex_ids(
                     si,
@@ -339,6 +357,7 @@ fn to_runtime_vertex<V: StoreVertex>(v: &V) -> Vertex {
         .map(|(prop_id, prop_val)| encode_runtime_property(prop_id, prop_val))
         .collect();
     let details = DefaultDetails::new_with_prop(id, label.clone().unwrap(), properties);
+    info!("Successfully to_runtime_vertex {:?}", v.get_id());
     Vertex::new(id, label, details)
 }
 
