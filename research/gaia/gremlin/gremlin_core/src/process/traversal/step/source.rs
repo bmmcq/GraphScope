@@ -63,10 +63,8 @@ impl GraphVertexStep {
         let mut partitions = HashMap::new();
         for id in ids {
             if let Ok(wid) = partitioner.get_partition(&id, job_workers) {
-                info!("[gaia_source] route source vertex {} to worker {}", id, wid);
                 partitions.entry(wid).or_insert_with(Vec::new).push(id);
             } else {
-                info!("[gaia_source] get server id failed in graph_partition_manager in source op");
                 debug!("get server id failed in graph_partition_manager in source op");
             }
         }
@@ -114,10 +112,6 @@ impl GraphVertexStep {
             if let Some(ref seeds) = self.src {
                 if let Some(src) = seeds.get(&(worker_index as u64)) {
                     if !src.is_empty() {
-                        info!(
-                            "[gaia_source] worker {} is going to get_vertex for source {:?}",
-                            worker_index, src
-                        );
                         v_source = graph
                             .get_vertex(src, &self.v_params)
                             .unwrap_or(Box::new(std::iter::empty()));

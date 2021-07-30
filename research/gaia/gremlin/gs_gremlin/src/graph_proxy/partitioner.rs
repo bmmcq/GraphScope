@@ -53,10 +53,6 @@ impl Partitioner for MaxGraphMultiPartition {
                 "get server id failed in graph_partition_manager",
             ))? as u64;
         let worker_index = partition_id % worker_num_per_server;
-        info!(
-            "[gaia_partition_adapter]: route id: {} to worker index: {} on server {}",
-            vid, worker_index, server_index
-        );
         Ok(server_index * worker_num_per_server + worker_index as u64)
     }
 
