@@ -33,12 +33,13 @@ use maxgraph_store::db::graph::store::GraphStore;
 use store::v2::global_graph_schema::GlobalGraphSchema;
 use std::time::Instant;
 use std::cell::Cell;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 pub struct GlobalGraph {
     graph_partitions: HashMap<PartitionId, Arc<GraphStore>>,
     total_partition: u32,
     partition_to_server: HashMap<PartitionId, u32>,
-    total_time: Cell<u128>,
+    total_time: AtomicU64,
 }
 
 unsafe impl Send for GlobalGraph {}
@@ -50,14 +51,13 @@ impl GlobalGraph {
             graph_partitions: HashMap::new(),
             total_partition,
             partition_to_server: HashMap::new(),
-            total_time: Cell::new(0),
+            total_time: AtomicU64::new(0),
         }
     }
 
     fn acc_time(&self, start: Instant) {
-        let mut t = self.total_time.get();
-        t += Instant::now().duration_since(start).as_micros();
-        self.total_time.set(t);
+        let t = Instant::now().duration_since(start).as_micros();
+        self.total_time.fetch_add(t as u64, Ordering::Relaxed);
     }
 
     pub fn add_partition(&mut self, partition_id: PartitionId, graph_store: Arc<GraphStore>) {
