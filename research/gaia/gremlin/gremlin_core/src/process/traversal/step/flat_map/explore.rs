@@ -21,10 +21,13 @@ use crate::{str_to_dyn_error, DynIter, DynResult, FromPb};
 use bit_set::BitSet;
 use pegasus::api::function::FlatMapFunction;
 use std::sync::Arc;
+use std::time::Instant;
+use std::cell::Cell;
 
 pub struct FlatMapStatement<E: Into<GraphElement>> {
     tags: Arc<BitSet>,
     stmt: Box<dyn Statement<ID, E>>,
+    timer: Cell<u128>,
 }
 
 impl<E: Into<GraphElement> + 'static> FlatMapFunction<Traverser, Traverser>
@@ -35,11 +38,23 @@ impl<E: Into<GraphElement> + 'static> FlatMapFunction<Traverser, Traverser>
     fn exec(&self, input: Traverser) -> DynResult<DynIter<Traverser>> {
         if let Some(e) = input.get_element() {
             let id = e.id();
+            let begin = Instant::now();
             let iter = self.stmt.exec(id)?;
+            let end = Instant::now();
+            let latency = end.duration_since(begin).as_micros();
+            let mut total_time = self.timer.get();
+            total_time += latency;
+            self.timer.set(total_time);
             Ok(Box::new(TraverserSplitIter::new(input, &self.tags, iter)))
         } else {
             Err(str_to_dyn_error("invalid input for vertex/edge step"))
         }
+    }
+}
+
+impl<E: Into<GraphElement>> Drop for FlatMapStatement<E>{
+    fn drop(&mut self) {
+        info!("Store EXEC Time: {:?} ms", self.timer.get() as f64 / 1000.0);
     }
 }
 
@@ -61,11 +76,11 @@ impl FlatMapFuncGen for VertexStep {
         if step.return_type == 0 {
             let params = QueryParams::from_pb(step.query_params)?;
             let stmt = graph.prepare_explore_vertex(direction, &params)?;
-            Ok(Box::new(FlatMapStatement { tags: Arc::new(self.tags), stmt }))
+            Ok(Box::new(FlatMapStatement { tags: Arc::new(self.tags), stmt, timer: Cell::new(0) }))
         } else if step.return_type == 1 {
             let params = QueryParams::from_pb(step.query_params)?;
             let stmt = graph.prepare_explore_edge(direction, &params)?;
-            Ok(Box::new(FlatMapStatement { tags: Arc::new(self.tags), stmt }))
+            Ok(Box::new(FlatMapStatement { tags: Arc::new(self.tags), stmt, timer: Cell::new(0) }))
         } else {
             Err(str_to_dyn_error("Wrong return type in VertexStep"))
         }
