@@ -178,10 +178,9 @@ where
         _ids: &[ID],
         _params: &QueryParams<Edge>,
     ) -> DynResult<Box<dyn Iterator<Item = Edge> + Send>> {
-        // TODO(bingqing): adapt get_edge when graphscope support this
-        Err(str_to_dyn_error(
-            "GraphScope storage does not support get_edge for now",
-        ))
+        let store = self.store.clone();
+        store.get_edge_properties(0, vec![], None);
+        Ok(Box::new(vec![].into_iter()))
     }
 
     fn prepare_explore_vertex(

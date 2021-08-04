@@ -18,10 +18,13 @@ use crate::process::traversal::traverser::Traverser;
 use bit_set::BitSet;
 use dyn_type::Object;
 use pegasus::api::function::*;
+use crate::structure::QueryParams;
 
 impl MapFunction<Traverser, Traverser> for pb::PathStep {
     fn exec(&self, input: Traverser) -> FnResult<Traverser> {
         let path = input.take_path();
+        let graph = crate::get_graph().unwrap();
+        let _r = graph.get_edge(&[0], &QueryParams::default())?;
         Ok(Traverser::Object(Object::DynOwned(Box::new(path))))
     }
 }
