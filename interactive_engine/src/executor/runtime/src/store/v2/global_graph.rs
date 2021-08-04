@@ -442,7 +442,7 @@ impl GlobalGraphQuery for GlobalGraph {
 
     fn get_edge_properties(&self, si: SnapshotId, ids: Vec<PartitionLabeledVertexIds>,  output_prop_ids: Option<&Vec<PropId>>)
         -> Self::EI {
-        info!("store acc time: {:?} ms", self.total_time.get() as f64 / 1000.0);
+        info!("store acc time: {:?} ms", self.total_time.get_mut() as f64 / 1000.0);
         vec![].into_iter()
     }
 
