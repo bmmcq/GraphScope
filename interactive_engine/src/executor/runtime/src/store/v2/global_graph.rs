@@ -31,11 +31,14 @@ use maxgraph_store::api::graph_partition::GraphPartitionManager;
 use maxgraph_store::config::StoreConfig;
 use maxgraph_store::db::graph::store::GraphStore;
 use store::v2::global_graph_schema::GlobalGraphSchema;
+use std::time::Instant;
+use std::cell::Cell;
 
 pub struct GlobalGraph {
     graph_partitions: HashMap<PartitionId, Arc<GraphStore>>,
     total_partition: u32,
     partition_to_server: HashMap<PartitionId, u32>,
+    total_time: Cell<u128>,
 }
 
 unsafe impl Send for GlobalGraph {}
@@ -47,7 +50,14 @@ impl GlobalGraph {
             graph_partitions: HashMap::new(),
             total_partition,
             partition_to_server: HashMap::new(),
+            total_time: Cell::new(0),
         }
+    }
+
+    fn acc_time(&self, start: Instant) {
+        let mut t = self.total_time.get();
+        t += Instant::now().duration_since(start).as_micros();
+        self.total_time.set(t);
     }
 
     pub fn add_partition(&mut self, partition_id: PartitionId, graph_store: Arc<GraphStore>) {
@@ -312,8 +322,9 @@ impl GlobalGraphQuery for GlobalGraph {
 
     fn get_out_vertex_ids(&self, si: SnapshotId, src_ids: Vec<PartitionVertexIds>, edge_labels: &Vec<LabelId>, condition: Option<&Condition>,
                           dedup_prop_ids: Option<&Vec<PropId>>, limit: usize) -> Box<dyn Iterator<Item=(VertexId, Self::VI)>> {
+        let start = Instant::now();
         let res = self.get_edge_iter_vec(si, src_ids, edge_labels, condition, EdgeDirection::Out).unwrap();
-        Box::new(
+        let ret = Box::new(
             res.into_iter().map(|(vertex_id, edge_iter_vec)|
                 (
                     vertex_id,
@@ -323,13 +334,16 @@ impl GlobalGraphQuery for GlobalGraph {
                         .collect::<Vec<LocalStoreVertex>>().into_iter()
                 )
             ).collect::<Vec<(i64, IntoIter<LocalStoreVertex>)>>().into_iter()
-        )
+        );
+        self.acc_time(start);
+        ret
     }
 
     fn get_out_edges(&self, si: SnapshotId, src_ids: Vec<PartitionVertexIds>, edge_labels: &Vec<LabelId>, condition: Option<&Condition>,
                      dedup_prop_ids: Option<&Vec<PropId>>, output_prop_ids: Option<&Vec<PropId>>, limit: usize) -> Box<dyn Iterator<Item=(VertexId, Self::EI)>> {
+        let start = Instant::now();
         let res = self.get_edge_iter_vec(si, src_ids, edge_labels, condition, EdgeDirection::Out).unwrap();
-        Box::new(res.into_iter().map(|(vertex_id, edge_iter_vec)| {
+        let ret = Box::new(res.into_iter().map(|(vertex_id, edge_iter_vec)| {
             (
                 vertex_id,
                 EdgeIterator::new(&edge_iter_vec)
@@ -338,13 +352,16 @@ impl GlobalGraphQuery for GlobalGraph {
                     .collect::<Vec<LocalStoreEdge>>()
                     .into_iter()
             )
-        }).collect::<Vec<(i64, IntoIter<LocalStoreEdge>)>>().into_iter())
+        }).collect::<Vec<(i64, IntoIter<LocalStoreEdge>)>>().into_iter());
+        self.acc_time(start);
+        ret
     }
 
     fn get_in_vertex_ids(&self, si: SnapshotId, src_ids: Vec<PartitionVertexIds>, edge_labels: &Vec<LabelId>, condition: Option<&Condition>,
                          dedup_prop_ids: Option<&Vec<PropId>>, limit: usize) -> Box<dyn Iterator<Item=(i64, Self::VI)>> {
+        let start = Instant::now();
         let res = self.get_edge_iter_vec(si, src_ids, edge_labels, condition, EdgeDirection::In).unwrap();
-        Box::new(
+        let ret = Box::new(
             res.into_iter().map(|(vertex_id, edge_iter_vec)|
                 (
                     vertex_id,
@@ -354,13 +371,16 @@ impl GlobalGraphQuery for GlobalGraph {
                         .collect::<Vec<LocalStoreVertex>>().into_iter()
                 )
             ).collect::<Vec<(i64, IntoIter<LocalStoreVertex>)>>().into_iter()
-        )
+        );
+        self.acc_time(start);
+        ret
     }
 
     fn get_in_edges(&self, si: SnapshotId, src_ids: Vec<PartitionVertexIds>, edge_labels: &Vec<LabelId>, condition: Option<&Condition>,
                     dedup_prop_ids: Option<&Vec<PropId>>, output_prop_ids: Option<&Vec<PropId>>, limit: usize) -> Box<dyn Iterator<Item=(VertexId, Self::EI)>> {
+        let start = Instant::now();
         let res = self.get_edge_iter_vec(si, src_ids, edge_labels, condition, EdgeDirection::In).unwrap();
-        Box::new(res.into_iter().map(|(vertex_id, edge_iter_vec)| {
+        let ret = Box::new(res.into_iter().map(|(vertex_id, edge_iter_vec)| {
             (
                 vertex_id,
                 EdgeIterator::new(&edge_iter_vec)
@@ -369,30 +389,39 @@ impl GlobalGraphQuery for GlobalGraph {
                     .collect::<Vec<LocalStoreEdge>>()
                     .into_iter()
             )
-        }).collect::<Vec<(i64, IntoIter<LocalStoreEdge>)>>().into_iter())
+        }).collect::<Vec<(i64, IntoIter<LocalStoreEdge>)>>().into_iter());
+        self.acc_time(start);
+        ret
     }
 
     fn count_out_edges(&self, si: SnapshotId, src_ids: Vec<PartitionVertexIds>, edge_labels: &Vec<LabelId>, condition: Option<&Condition>) -> Box<dyn Iterator<Item=(i64, usize)>> {
+        let start = Instant::now();
         let res = self.get_edge_iter_vec(si, src_ids, edge_labels, condition, EdgeDirection::Out).unwrap();
-        Box::new(res.into_iter().map(|(vertex_id, edge_iter_vec)| {
+        let ret = Box::new(res.into_iter().map(|(vertex_id, edge_iter_vec)| {
             (
                 vertex_id,
                 EdgeIterator::new(&edge_iter_vec).count()
             )
-        }).collect::<Vec<(i64, usize)>>().into_iter())
+        }).collect::<Vec<(i64, usize)>>().into_iter());
+        self.acc_time(start);
+        ret
     }
 
     fn count_in_edges(&self, si: SnapshotId, src_ids: Vec<PartitionVertexIds>, edge_labels: &Vec<LabelId>, condition: Option<&Condition>) -> Box<dyn Iterator<Item=(i64, usize)>> {
+        let start = Instant::now();
         let res = self.get_edge_iter_vec(si, src_ids, edge_labels, condition, EdgeDirection::In).unwrap();
-        Box::new(res.into_iter().map(|(vertex_id, edge_iter_vec)| {
+        let ret = Box::new(res.into_iter().map(|(vertex_id, edge_iter_vec)| {
             (
                 vertex_id,
                 EdgeIterator::new(&edge_iter_vec).count()
             )
-        }).collect::<Vec<(i64, usize)>>().into_iter())
+        }).collect::<Vec<(i64, usize)>>().into_iter());
+        self.acc_time(start);
+        ret
     }
 
     fn get_vertex_properties(&self, si: SnapshotId, ids: Vec<PartitionLabeledVertexIds>, output_prop_ids: Option<&Vec<PropId>>) -> Self::VI {
+        let start = Instant::now();
         let mut id_iter = ids.into_iter().flat_map(move |(partition, label_id_vec)| {
             label_id_vec.into_iter().flat_map(move |(label_id, ids)| {
                 ids.into_iter().map(move |id| {
@@ -406,16 +435,20 @@ impl GlobalGraphQuery for GlobalGraph {
                 res.push(Self::parse_vertex(v, output_prop_ids));
             }
         }
-        return res.into_iter();
+        let ret = res.into_iter();
+        self.acc_time(start);
+        ret
     }
 
     fn get_edge_properties(&self, si: SnapshotId, ids: Vec<PartitionLabeledVertexIds>,  output_prop_ids: Option<&Vec<PropId>>)
         -> Self::EI {
-        unimplemented!()
+        info!("store acc time: {:?} ms", self.total_time.get() as f64 / 1000.0);
+        vec![].into_iter()
     }
 
     fn get_all_vertices(&self, si: SnapshotId, labels: &Vec<LabelId>, condition: Option<&Condition>, dedup_prop_ids: Option<&Vec<PropId>>,
                         output_prop_ids: Option<&Vec<PropId>>, limit: usize, partition_ids: &Vec<PartitionId>) -> Self::VI {
+        let start = Instant::now();
         let iter_vec = self.scan_vertex_iter_vec(si, labels, partition_ids, condition).unwrap();
         let real_limit = Self::get_limit(limit);
         let mut res = vec![];
@@ -427,11 +460,14 @@ impl GlobalGraphQuery for GlobalGraph {
                 }
             }
         }
-        return res.into_iter();
+        let ret = res.into_iter();
+        self.acc_time(start);
+        ret
     }
 
     fn get_all_edges(&self, si: SnapshotId, labels: &Vec<LabelId>, condition: Option<&Condition>, dedup_prop_ids: Option<&Vec<PropId>>,
                      output_prop_ids: Option<&Vec<PropId>>, limit: usize, partition_ids: &Vec<PartitionId>) -> Self::EI {
+        let start = Instant::now();
         let iter_vec = self.scan_edge_iter_vec(si, labels, partition_ids, condition).unwrap();
         let real_limit = Self::get_limit(limit);
         let mut res = vec![];
@@ -443,10 +479,13 @@ impl GlobalGraphQuery for GlobalGraph {
                 }
             }
         }
-        return res.into_iter();
+        let ret = res.into_iter();
+        self.acc_time(start);
+        ret
     }
 
     fn count_all_vertices(&self, si: i64, labels: &Vec<u32>, condition: Option<&Condition>, partition_ids: &Vec<u32>) -> u64 {
+        let start = Instant::now();
         let iter_vec = self.scan_vertex_iter_vec(si, labels, partition_ids, condition).unwrap();
         let mut count = 0;
         for mut iter in iter_vec {
@@ -454,10 +493,12 @@ impl GlobalGraphQuery for GlobalGraph {
                 count += 1;
             }
         }
+        self.acc_time(start);
         return count;
     }
 
     fn count_all_edges(&self, si: i64, labels: &Vec<u32>, condition: Option<&Condition>, partition_ids: &Vec<u32>) -> u64 {
+        let start = Instant::now();
         let iter_vec = self.scan_edge_iter_vec(si, labels, partition_ids, condition).unwrap();
         let mut count = 0;
         for mut iter in iter_vec {
@@ -465,6 +506,7 @@ impl GlobalGraphQuery for GlobalGraph {
                 count += 1;
             }
         }
+        self.acc_time(start);
         return count;
     }
 
