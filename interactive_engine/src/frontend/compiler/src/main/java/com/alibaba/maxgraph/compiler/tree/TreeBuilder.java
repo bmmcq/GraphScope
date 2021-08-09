@@ -231,11 +231,11 @@ public class TreeBuilder {
                     StandardVerificationStrategy.class,
                     IncidentToAdjacentStrategy.class,
                     AdjacentToIncidentStrategy.class);
-            if (this.disableBarrierOptimizer) {
+         //   if (this.disableBarrierOptimizer) {
                 admin.getStrategies().removeStrategies(
-                        RepeatUnrollStrategy.class,
+         //               RepeatUnrollStrategy.class,
                         LazyBarrierStrategy.class);
-            }
+         //   }
             admin.getStrategies().addStrategies(MaxGraphFilterRankingStrategy.instance());
             admin.applyStrategies();
         }

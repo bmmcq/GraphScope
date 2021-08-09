@@ -425,7 +425,7 @@ impl GlobalGraphQuery for GlobalGraph {
 
     fn get_vertex_properties(&self, si: SnapshotId, ids: Vec<PartitionLabeledVertexIds>, output_prop_ids: Option<&Vec<PropId>>) -> Self::VI {
         let start = Instant::now();
-        for (partition_id, label_id_vec) in ids {
+        for (partition_id, label_id_vec) in ids.iter() {
             for (_, id_vec) in label_id_vec {
                 self.invoke_times.fetch_add(id_vec.len() as u64, Ordering::Relaxed);
             }
