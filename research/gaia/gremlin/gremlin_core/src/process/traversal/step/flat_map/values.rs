@@ -28,23 +28,21 @@ impl FlatMapFunction<Traverser, Traverser> for PropertiesStep {
     type Target = DynIter<Traverser>;
 
     fn exec(&self, input: Traverser) -> DynResult<DynIter<Traverser>> {
-        let graph = crate::get_graph().unwrap();
-        let _r = graph.get_edge(&[0], &QueryParams::default())?;
         if let Some(elem) = input.get_element() {
             let mut result = vec![];
-            // for prop_name in self.prop_keys.iter() {
-            //     let prop_value = elem.details().get_property(prop_name);
-            //     if let Some(prop_value) = prop_value {
-            //         let mut traverser = input.clone();
-            //         traverser.split_with_value(
-            //             prop_value
-            //                 .try_to_owned()
-            //                 .ok_or(str_to_dyn_error("Can't get owned property value"))?,
-            //             &self.tags,
-            //         );
-            //         result.push(Ok(traverser));
-            //     }
-            // }
+            for prop_name in self.prop_keys.iter() {
+                let prop_value = elem.details().get_property(prop_name);
+                if let Some(prop_value) = prop_value {
+                    let mut traverser = input.clone();
+                    traverser.split_with_value(
+                        prop_value
+                            .try_to_owned()
+                            .ok_or(str_to_dyn_error("Can't get owned property value"))?,
+                        &self.tags,
+                    );
+                    result.push(Ok(traverser));
+                }
+            }
 
             Ok(Box::new(result.into_iter()))
         } else {

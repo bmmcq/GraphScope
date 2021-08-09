@@ -39,13 +39,17 @@ impl MapFunction<Traverser, Traverser> for EdgeVertexFunc {
                     if let Some(v) = r.next() {
                         input.split(v, &self.tags);
                         input.remove_tags(&self.remove_tags);
-
                         Ok(input)
                     } else {
                         Err(str_to_dyn_error(&format!("Vertex with id {} not found", id)))
                     }
                 }
-                _ => Err(str_to_dyn_error("Should not call `EdgeVertexStep` on a vertex")),
+                _ =>
+                    {
+                        let graph = crate::get_graph().unwrap();
+                        let _r = graph.get_edge(&[0], &QueryParams::default())?;
+                        Ok(input)
+                    },
             }
         } else {
             Err(str_to_dyn_error("invalid input for `EdgeVertexStep`"))
