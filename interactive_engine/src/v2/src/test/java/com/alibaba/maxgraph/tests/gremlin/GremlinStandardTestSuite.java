@@ -39,33 +39,33 @@ public class GremlinStandardTestSuite extends AbstractGremlinSuite {
      */
     private static final Class<?>[] allTests = new Class<?>[]{
             // Branch
-            RepeatTest.Traversals.class,
-            UnionTest.Traversals.class,
-
-            // filter
-            AndTest.Traversals.class,
-            CyclicPathTest.Traversals.class,
-            DedupTest.Traversals.class,
-            HasTest.Traversals.class,
-            IsTest.Traversals.class,
+//            RepeatTest.Traversals.class,
+//            UnionTest.Traversals.class,
+//
+//            // filter
+//            AndTest.Traversals.class,
+//            CyclicPathTest.Traversals.class,
+//            DedupTest.Traversals.class,
+//            HasTest.Traversals.class,
+//            IsTest.Traversals.class,
             RangeTest.Traversals.class,
-            SimplePathTest.Traversals.class,
-            WhereTest.Traversals.class,
-
-            // map
-            ConstantTest.Traversals.class,
-            CountTest.Traversals.class,
-            FlatMapTest.Traversals.class,
-            FoldTest.Traversals.class,
-            MaxTest.Traversals.class,
-            MinTest.Traversals.class,
-            SumTest.Traversals.class,
-            OrderTest.Traversals.class,
-            PathTest.Traversals.class,
-            PropertiesTest.Traversals.class,
-            SelectTest.Traversals.class,
-            VertexTest.Traversals.class,
-            ValueMapTest.Traversals.class,
+//            SimplePathTest.Traversals.class,
+//            WhereTest.Traversals.class,
+//
+//            // map
+//            ConstantTest.Traversals.class,
+//            CountTest.Traversals.class,
+//            FlatMapTest.Traversals.class,
+//            FoldTest.Traversals.class,
+//            MaxTest.Traversals.class,
+//            MinTest.Traversals.class,
+//            SumTest.Traversals.class,
+//            OrderTest.Traversals.class,
+//            PathTest.Traversals.class,
+//            PropertiesTest.Traversals.class,
+//            SelectTest.Traversals.class,
+//            VertexTest.Traversals.class,
+//            ValueMapTest.Traversals.class,
     };
 
     /**
@@ -73,33 +73,33 @@ public class GremlinStandardTestSuite extends AbstractGremlinSuite {
      */
     private static final Class<?>[] testsToEnforce = new Class<?>[]{
             // Repeat
-            RepeatTest.class,
-            UnionTest.class,
-
-            // filter
-            AndTest.class,
-            CyclicPathTest.class,
-            DedupTest.class,
-            HasTest.class,
-            IsTest.class,
+//            RepeatTest.class,
+//            UnionTest.class,
+//
+//            // filter
+//            AndTest.class,
+//            CyclicPathTest.class,
+//            DedupTest.class,
+//            HasTest.class,
+//            IsTest.class,
             RangeTest.class,
-            SimplePathTest.class,
-            WhereTest.class,
-
-            // map
-            ConstantTest.class,
-            CountTest.class,
-            FlatMapTest.class,
-            FoldTest.class,
-            MaxTest.class,
-            MinTest.class,
-            SumTest.class,
-            OrderTest.class,
-            PathTest.class,
-            PropertiesTest.class,
-            SelectTest.class,
-            VertexTest.class,
-            ValueMapTest.class,
+//            SimplePathTest.class,
+//            WhereTest.class,
+//
+//            // map
+//            ConstantTest.class,
+//            CountTest.class,
+//            FlatMapTest.class,
+//            FoldTest.class,
+//            MaxTest.class,
+//            MinTest.class,
+//            SumTest.class,
+//            OrderTest.class,
+//            PathTest.class,
+//            PropertiesTest.class,
+//            SelectTest.class,
+//            VertexTest.class,
+//            ValueMapTest.class,
     };
 
     /**
