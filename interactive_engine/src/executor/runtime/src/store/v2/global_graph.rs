@@ -40,6 +40,7 @@ pub struct GlobalGraph {
     total_partition: u32,
     partition_to_server: HashMap<PartitionId, u32>,
     total_time: AtomicU64,
+    invoke_times: AtomicU64,
 }
 
 unsafe impl Send for GlobalGraph {}
@@ -52,6 +53,7 @@ impl GlobalGraph {
             total_partition,
             partition_to_server: HashMap::new(),
             total_time: AtomicU64::new(0),
+            invoke_times: AtomicU64::new(0),
         }
     }
 
@@ -214,6 +216,7 @@ impl GlobalGraph {
         -> GraphResult<Vec<(i64, Vec<Box<dyn EdgeResultIter<E=EdgeImpl> + 'a>>)>> {
         let mut res = vec![];
         for (partition_id, vertex_ids) in src_ids {
+            self.invoke_times.fetch_add(vertex_ids.len() as u64, Ordering::Relaxed);
             for vertex_id in vertex_ids {
                 let mut edge_iters = vec![];
                 if edge_labels.is_empty() {
@@ -422,6 +425,11 @@ impl GlobalGraphQuery for GlobalGraph {
 
     fn get_vertex_properties(&self, si: SnapshotId, ids: Vec<PartitionLabeledVertexIds>, output_prop_ids: Option<&Vec<PropId>>) -> Self::VI {
         let start = Instant::now();
+        for (partition_id, label_id_vec) in ids {
+            for (_, id_vec) in label_id_vec {
+                self.invoke_times.fetch_add(id_vec.len() as u64, Ordering::Relaxed);
+            }
+        }
         let mut id_iter = ids.into_iter().flat_map(move |(partition, label_id_vec)| {
             label_id_vec.into_iter().flat_map(move |(label_id, ids)| {
                 ids.into_iter().map(move |id| {
@@ -443,7 +451,8 @@ impl GlobalGraphQuery for GlobalGraph {
     fn get_edge_properties(&self, si: SnapshotId, ids: Vec<PartitionLabeledVertexIds>,  output_prop_ids: Option<&Vec<PropId>>)
         -> Self::EI {
         let t = self.total_time.fetch_add(0, Ordering::Relaxed);
-        info!("store acc time: {:?} ms", t as f64 / 1000.0);
+        let times = self.invoke_times.fetch_add(0, Ordering::Relaxed);
+        info!("store acc time: {:?} ms, invoke times {}", t as f64 / 1000.0, times);
         vec![].into_iter()
     }
 
