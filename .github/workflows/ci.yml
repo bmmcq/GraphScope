@@ -534,6 +534,12 @@ jobs:
         cd interactive_engine/src/v2
         mvn test -Pgremlin-test
 
+    - name: tmate
+      if: false
+      uses: mxschmitt/action-tmate@v3
+      with:
+        sudo: false
+
     - uses: actions/upload-artifact@v2
       with:
         name: gss-${{ github.sha }}
