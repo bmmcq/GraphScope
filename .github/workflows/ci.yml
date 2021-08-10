@@ -499,6 +499,17 @@ jobs:
     container: registry.cn-hongkong.aliyuncs.com/graphscope/graphscope-vineyard:v0.2.6
     steps:
 
+    - name: Prepare tmate
+      run: |
+        yum install -y xz
+        ln -s /bin/true /bin/apt-get
+
+    - name: tmate
+      if: always()
+      uses: mxschmitt/action-tmate@v3
+      with:
+        sudo: false
+
     - name: Install Dependencies
       run: |
         wget --no-verbose https://golang.org/dl/go1.15.5.linux-amd64.tar.gz
@@ -507,8 +518,6 @@ jobs:
         echo "source ~/.cargo/env" >> ~/.bashrc
         source ~/.bashrc
         rustup component add rustfmt
-        yum install -y xz
-        ln -s /bin/true /bin/apt-get
 
     - uses: actions/checkout@v2.3.2
 
@@ -534,11 +543,11 @@ jobs:
         cd interactive_engine/src/v2
         mvn test -Pgremlin-test
 
-    - name: tmate
-      if: false
-      uses: mxschmitt/action-tmate@v3
-      with:
-        sudo: false
+
+
+
+
+
 
     - uses: actions/upload-artifact@v2
       with:
