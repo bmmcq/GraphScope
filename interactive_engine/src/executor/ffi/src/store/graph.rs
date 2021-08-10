@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use std::os::raw::{c_char, c_void};
 use std::ffi::CStr;
-use std::str;
+use std::{str, panic};
 use maxgraph_store::db::api::{GraphConfigBuilder, SnapshotId, GraphResult, GraphStorage, TypeDef, EdgeId, EdgeKind, DataLoadTarget};
 use maxgraph_store::db::api::PropertyMap;
 use maxgraph_store::db::proto::common::{OpTypePb, OperationBatchPb, OperationPb, DataOperationPb, VertexIdPb, LabelIdPb, EdgeIdPb, EdgeKindPb, TypeDefPb, DdlOperationPb, ConfigPb, CreateVertexTypePb, AddEdgeKindPb, PrepareDataLoadPb, CommitDataLoadPb, EdgeLocationPb};
@@ -52,6 +52,9 @@ pub extern fn openGraphStore(config_bytes: *const u8, len: usize) -> GraphHandle
         } else {
             println!("No valid log4rs.config, rust won't print logs");
         }
+        panic::set_hook(Box::new(|_| {
+            info!("hx Custom panic hook");
+        }));
     });
     let handle = Box::new(GraphStore::open(&config, path).unwrap());
     let ret = Box::into_raw(handle);
