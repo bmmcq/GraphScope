@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-#      - gremlin_debug
+      - gremlin_debug
     paths-ignore:
       - 'gnn_engine/**'
       - '**.md'
