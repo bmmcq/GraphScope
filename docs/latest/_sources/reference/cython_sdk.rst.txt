@@ -178,7 +178,7 @@ Pregel
 
         Get value from a aggregator.
 
-    .. py:method:: Context.superstep() -> str
+    .. py:method:: Context.superstep() -> int
        :noindex:
 
         Get current superstep, begin with 0.
@@ -529,6 +529,7 @@ PIE
 
    .. py:method:: AdjList.begin() -> Nbr
       :noindex:
+
         Return begin addr of the adj list.
 
    .. py:method:: AdjList.end() -> Nbr
@@ -618,22 +619,22 @@ PIE
 
         Return False if `v` is the outer vertex of this fragment.
 
-   .. py:method:: Fragment.get_node(label_id: int, oid: int64_t, v: Vertex&) -> bool
+   .. py:method:: Fragment.get_node(label_id: int, oid: string&, v: Vertex&) -> bool
       :noindex:
 
         Return True if oid exists in this fragment.
 
-   .. py:method:: Fragment.get_inner_node(label_id: int, oid: int64_t, v: Vertex&) -> bool
+   .. py:method:: Fragment.get_inner_node(label_id: int, oid: string&, v: Vertex&) -> bool
       :noindex:
 
         Return True if oid exists in the inner vertex in this fragment, and assign the node to `v`.
 
-   .. py:method:: Fragment.get_outer_node(label_id: int, oid: int64_t, v: Vertex&) -> bool
+   .. py:method:: Fragment.get_outer_node(label_id: int, oid: string&, v: Vertex&) -> bool
       :noindex:
 
         Return True if oid exists in the outer vertex in this fragment, and assign the node to `v`.
 
-   .. py:method:: Fragment.get_node_id(v: Vertex) -> int64_t
+   .. py:method:: Fragment.get_node_id(v: Vertex) -> str
       :noindex:
 
         Return vertex oid of `v`.
@@ -835,3 +836,28 @@ PIE
 
          Aggregator for calculating products of values.
 
+   .. py:data:: kOverwriteAggregate
+      :noindex:
+
+         Aggregator that stores a value that is overwritten once another value is aggregated.
+         Note that, in case multiple vertices write to this aggregator, the behavior is
+         non-deterministic.
+
+   .. py:data:: kTextAppendAggregate
+      :noindex:
+
+         Aggregator with string as its value which keeps appending text to it.
+
+GraphScope types
+----------------
+.. autosummary::
+   :toctree: generated/
+
+   graphscope.Vertex
+
+Functions
+---------
+.. autosummary::
+   :toctree: generated/
+
+   graphscope.declare
